@@ -63,9 +63,9 @@ impl ObjectBuilder {
     pub fn build(self, device: &wgpu::Device, queue: &wgpu::Queue) -> Object3D {
         let transform = self.transform.unwrap_or(Transform::IDENTITY);
         let material = self.material.unwrap_or_default();
-        let texture = self.texture.unwrap_or_else(|| {
-            Texture2D::from_bytes(Some("Object3D Texture"), &[1, 1, 1, 1], device, queue).unwrap()
-        });
+        let texture = self
+            .texture
+            .unwrap_or_else(|| Texture2D::white(device, queue));
 
         let mut buffer_data = Vec::with_capacity(Object3D::UNIFORMS_SIZE as usize);
         buffer_data.extend_from_slice(bytemuck::bytes_of(&transform.model().to_cols_array()));

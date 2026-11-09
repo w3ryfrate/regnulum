@@ -96,11 +96,10 @@ impl Renderer {
             .with_eye(Vec3::new(0.0, 0.0, 4.0))
             .with_aspect_ratio(aspect_ratio);
 
-        let object_texture = Texture2D::from_file("assets/error.png", &device, &queue).unwrap();
+        let object_texture =
+            Texture2D::from_file("assets/new_texture.png", &device, &queue).unwrap();
         let object3d = ObjectBuilder::new(&voxel_mesh)
-            .with_material(Material {
-                color: Color::from_srgb(0.3, 0.1, 0.66, 1.0),
-            })
+            .with_texture(&object_texture)
             .build(&device, &queue);
 
         let render_pipeline = ObjectBuilder::build_render_pipeline(&shader, &device);
