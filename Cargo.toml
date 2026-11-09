@@ -1,0 +1,13 @@
+[package]
+name = "regnulum"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+image = { version = "*", features = ["png", "jpeg"] }
+glam = { version = "0.34.2", features = ["bytemuck"] }
+wgpu = "*"
+winit = "*"
+pollster = "1.0.1"
+bytemuck = "*"
+thiserror = "*"
