@@ -1,6 +1,6 @@
 mod camera;
+mod instance;
 mod mesh;
-mod object;
 mod pipeline;
 pub mod renderer;
 mod texture;

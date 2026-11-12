@@ -1,13 +1,15 @@
+use crate::event::InputState;
 use graphics::renderer::Renderer;
 use graphics::types::{CORNFLOWER_BLUE, Color};
 use std::sync::Arc;
 use winit::application::ApplicationHandler;
 use winit::dpi::PhysicalSize;
-use winit::event::{ElementState, KeyEvent, WindowEvent};
+use winit::event::WindowEvent;
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
-use winit::keyboard::{Key, NamedKey};
+use winit::keyboard::KeyCode;
 use winit::window::{Window, WindowAttributes, WindowId};
 
+mod event;
 mod graphics;
 
 #[derive(Default)]
@@ -24,22 +26,29 @@ impl App {
 
         let window = Arc::new(event_loop.create_window(window_attribs).unwrap());
         let renderer = Renderer::new(window.clone()).await;
+        let input = InputState::new();
 
         self.state = Some(State {
             window: window,
             renderer,
+            input,
         })
     }
 
-    fn frame_update(&mut self) {
+    fn frame_update(&mut self, event_loop: &ActiveEventLoop) {
         let Some(state) = &mut self.state else {
             eprintln!("App State wasn't initialized before first frame update!");
             return;
         };
 
+        if state.input.is_key_down(KeyCode::Escape) {
+            event_loop.exit();
+        }
+
         let clear_color = Color::from_hex(CORNFLOWER_BLUE);
         state.renderer.render(clear_color);
 
+        state.input.refresh();
         state.window.request_redraw();
     }
 
@@ -58,25 +67,19 @@ impl ApplicationHandler for App {
     }
 
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
+        let Some(state) = &mut self.state else {
+            return;
+        };
+
         match event {
-            WindowEvent::KeyboardInput {
-                event:
-                    KeyEvent {
-                        state: ElementState::Pressed,
-                        logical_key: Key::Named(NamedKey::Escape),
-                        ..
-                    },
-                ..
-            } => {
-                event_loop.exit();
-            }
+            WindowEvent::KeyboardInput { event, .. } => state.input.on_key_event(event),
             WindowEvent::Resized(size) => self.on_resize(size),
             WindowEvent::CloseRequested => {
                 println!("The close button was pressed; stopping");
                 event_loop.exit();
             }
             WindowEvent::RedrawRequested => {
-                self.frame_update();
+                self.frame_update(event_loop);
             }
             _ => (),
         }
@@ -86,6 +89,7 @@ impl ApplicationHandler for App {
 struct State {
     window: Arc<Window>,
     renderer: Renderer,
+    input: InputState,
 }
 
 fn main() {

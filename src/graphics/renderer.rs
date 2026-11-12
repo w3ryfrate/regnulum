@@ -1,7 +1,7 @@
 use super::{
     camera::Camera,
+    instance::{Object3D, ObjectBuilder},
     mesh::MeshBuilder,
-    object::{Material, Object3D, ObjectBuilder},
     pipeline::Shader,
     texture::Texture2D,
     types::Color,
@@ -20,7 +20,7 @@ pub struct Renderer {
     depth_texture: Texture2D,
 
     camera: Camera,
-    object: Object3D,
+    objects: Vec<Object3D>,
     render_pipeline: wgpu::RenderPipeline,
 }
 
@@ -98,7 +98,8 @@ impl Renderer {
 
         let object_texture =
             Texture2D::from_file("assets/new_texture.png", &device, &queue).unwrap();
-        let object3d = ObjectBuilder::new(&voxel_mesh)
+
+        let voxel1 = ObjectBuilder::new(&voxel_mesh)
             .with_texture(&object_texture)
             .build(&device, &queue);
 
@@ -111,7 +112,7 @@ impl Renderer {
             surface_config,
             depth_texture,
             camera,
-            object: object3d,
+            objects: vec![voxel1],
             render_pipeline,
         }
     }
@@ -174,8 +175,11 @@ impl Renderer {
             multiview_mask: None,
         });
         render_pass.set_pipeline(&self.render_pipeline);
-        self.object
-            .draw(&mut render_pass, &self.camera, &self.queue);
+
+        for object in &self.objects {
+            object.draw(&mut render_pass, &self.camera, &self.queue);
+        }
+
         drop(render_pass);
 
         self.queue.submit(std::iter::once(command_encoder.finish()));
